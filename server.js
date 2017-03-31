@@ -9,8 +9,12 @@
 
 const express = require('express');
 const youtubeStream = require('youtube-audio-stream');
+const request = require('request');
+const cors = require('cors');
 
 const app = express();
+app.use(cors());
+
 
 // Streaming audio
 app.get('/audio', function(req, res) {
@@ -18,9 +22,19 @@ app.get('/audio', function(req, res) {
   try {
     youtubeStream(requestUrl, { quality : !!req.query.quality ? req.query.quality : 'highest' }).pipe(res)
   } catch (exception) {
-    res.status(500).send(exception)
+	
   }
 });
+
+// Predictive searching
+app.get('/suggest', function(req, res) {
+	var requestUrl = 'http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=' + req.query.term;
+	try {
+	  req.pipe(request(requestUrl)).pipe(res);			
+	} catch (exception) {
+	  console.log(exception);
+	}
+})
 
 app.listen(3002, function() {
  console.log(`The server is running at http://localhost:3002/`);
